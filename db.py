@@ -1,11 +1,8 @@
-from dotenv import load_dotenv
 import firebase_admin
 import os
 from firebase_admin import db
 from datetime import datetime
 from constants import Status, STATUS, USER_ID, USER_USERNAME, START_TIME
-
-load_dotenv()
 
 def setup_db():
     print("Setting up Database...")

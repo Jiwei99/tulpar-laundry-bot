@@ -1,14 +1,9 @@
 from telegram import CallbackQuery, Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, ConversationHandler, CallbackQueryHandler
-from dotenv import load_dotenv
 import os
 import service as svc
 import utils
 from constants import Encoders, CYCLE_TIME, Status
-
-# Error handling, logging, text formatting, bot description, start description, todos
-
-load_dotenv()
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(chat_id=update.effective_chat.id, text="Start")
@@ -28,10 +23,11 @@ async def use(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def use_machine(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
-    await query.answer()
     
     machine = query.data
     machine_label = utils.get_display_label(machine)
+    
+    await query.answer()
     # TODO: Handle machine error
     if svc.is_machine_in_use(machine):
         # Ask if user is sure they want to override
@@ -43,9 +39,9 @@ async def use_machine(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def confirm_use_machine(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
-    await query.answer()
     # TODO: Handle machine error
     machine = utils.decode_machine(query.data, Encoders.CONFIRM_ENCODER)
+    await query.answer()
     await use_machine_helper(update, context, query, machine)
 
 async def use_machine_helper(update: Update, context: ContextTypes.DEFAULT_TYPE, query: CallbackQuery, machine: str):
@@ -68,9 +64,9 @@ async def ping(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def ping_user(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
-    await query.answer()
     machine = utils.decode_machine(query.data, Encoders.PING_ENCODER)
     user_id = svc.get_user_id(machine)
+    await query.answer()
     await context.bot.send_message(chat_id=user_id, text=f"Please clear your laundry in {utils.get_display_label(machine)} immediately as there are other users waiting!")
     await query.edit_message_text(text=f"User has been notified!")
 
@@ -84,9 +80,9 @@ async def done(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def done_machine(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
-    await query.answer()
     machine = utils.decode_machine(query.data, Encoders.DONE_ENCODER)
     svc.set_status(machine, Status.AVAILABLE)
+    await query.answer()
     await query.edit_message_text(text=f"Your laundry in {utils.get_display_label(machine)} has been cleared!")
 
 async def clear(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -97,9 +93,9 @@ async def clear(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def clear_machine(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
-    await query.answer()
     machine = utils.decode_machine(query.data, Encoders.CLEAR_ENCODER)
     svc.set_status(machine, Status.AVAILABLE)
+    await query.answer()
     await query.edit_message_text(text=f"Your booking of {utils.get_display_label(machine)} has been cleared!")
 
 async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -148,6 +144,20 @@ def setup_bot():
 
     clear_machine_handler = CallbackQueryHandler(clear_machine, pattern=f"^{Encoders.CLEAR_ENCODER.value}\w+")
     application.add_handler(clear_machine_handler)
+
+    return application
     
+def run_bot_polling():
+    application = setup_bot()
     print("Starting Bot...")    
     application.run_polling()
+
+def create_bot():
+    application = setup_bot()
+    return application
+
+# def run_bot_webhook():
+#     setup_bot()
+#     print("Starting Bot...")    
+#     application.run_webhook()
+#     return application.bot
