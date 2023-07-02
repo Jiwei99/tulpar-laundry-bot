@@ -1,5 +1,6 @@
 anyio==3.7.0
 APScheduler==3.10.1
+asgiref==3.7.2
 backports.zoneinfo==0.2.1
 cachecontrol==0.13.1
 cachetools==5.3.1
