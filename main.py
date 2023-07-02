@@ -16,8 +16,8 @@ application = create_bot()
 #     return 'OK'
 
 @app.route('/', methods=['POST'])
-def webhook():
-    application.process_update(
+async def webhook():
+    await application.process_update(
         Update.de_json(data=request.get_json(force=True), bot=application.bot)
     )
     return "OK"
