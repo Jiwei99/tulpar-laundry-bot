@@ -18,7 +18,7 @@ application = create_bot()
 @app.route('/', methods=['POST'])
 def webhook():
     application.process_update(
-        Update.de_json(data=request.json(), bot=application.bot)
+        Update.de_json(data=request.get_json(force=True), bot=application.bot)
     )
     return "OK"
 
