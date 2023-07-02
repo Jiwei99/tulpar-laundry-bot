@@ -152,9 +152,13 @@ def run_bot_polling():
     print("Starting Bot...")    
     application.run_polling()
 
-def create_bot():
+async def process_webhook_update(request):
     application = setup_bot()
-    return application
+    await application.initialize()
+    await application.process_update(
+        Update.de_json(data=request.get_json(force=True), bot=application.bot)
+    )
+    await application.shutdown()
 
 # def run_bot_webhook():
 #     setup_bot()

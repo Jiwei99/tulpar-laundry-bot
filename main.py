@@ -1,14 +1,12 @@
-from telegram import Update
 from flask import Flask, request
 import os
 from dotenv import load_dotenv
 from db import setup_db
-from controller import create_bot 
+from controller import process_webhook_update 
 
 load_dotenv()
 app = Flask(__name__)
 setup_db()
-application = create_bot()
 
 # @app.route('/', methods=['POST'])
 # def webhook():
@@ -17,9 +15,7 @@ application = create_bot()
 
 @app.route('/', methods=['POST'])
 async def webhook():
-    await application.process_update(
-        Update.de_json(data=request.get_json(force=True), bot=application.bot)
-    )
+    await process_webhook_update(request)
     return "OK"
 
 
@@ -28,13 +24,13 @@ async def webhook():
 def health_check():
     return 'OK'
 
-@app.route('/set_webhook', methods=['GET', 'POST'])
-def set_webhook():
-    success = application.bot.set_webhook(os.getenv('WEBHOOK_URL'))
-    if success:
-        return "Webhook set successfully"
-    else:
-        return "Webhook setup failed"
+# @app.route('/set_webhook', methods=['GET', 'POST'])
+# def set_webhook():
+#     success = application.bot.set_webhook(os.getenv('WEBHOOK_URL'))
+#     if success:
+#         return "Webhook set successfully"
+#     else:
+#         return "Webhook setup failed"
 
 # Run the app
 if __name__ == "__main__":
