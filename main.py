@@ -2,12 +2,11 @@ from flask import Flask, request
 import os
 from dotenv import load_dotenv
 from db import setup_db
-from controller import run_bot_webhook, process_webhook_update 
+from controller import process_webhook_update 
 
 load_dotenv()
 app = Flask(__name__)
 setup_db()
-application = run_bot_webhook()
 
 # @app.route('/', methods=['POST'])
 # def webhook():
@@ -16,7 +15,7 @@ application = run_bot_webhook()
 
 @app.route('/', methods=['POST'])
 async def webhook():
-    await process_webhook_update(application, request)
+    await process_webhook_update(request)
     return "OK"
 
 

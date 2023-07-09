@@ -6,7 +6,7 @@ USER_USERNAME = "user_username"
 USER_ID = "user_id"
 START_TIME = "start_time"
 
-CYCLE_TIME = 30
+CYCLE_TIME = 1
 
 # Encoders
 class Encoders(Enum):
