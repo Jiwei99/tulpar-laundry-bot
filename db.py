@@ -1,3 +1,4 @@
+from typing import Dict
 import firebase_admin
 import os
 from firebase_admin import db
@@ -27,14 +28,14 @@ def setup_db():
 
     print("Connected to Database!")
 
-def get_status():
+def get_status() -> Dict:
     print("Retrieving statuses...")
     ref = db.reference("/machines")
     status = ref.get()
     print("Statuses retrieved!")
     return status
 
-def is_machine_in_use(machine):
+def is_machine_in_use(machine) -> str:
     print(f"Checking {machine} status...")
     ref = db.reference(f"/machines/{machine}/{STATUS}")
     status = ref.get()
@@ -60,7 +61,7 @@ def set_status(machine, status: Status):
     })
     print(f"{machine} is now {status.value}!")
 
-def get_user_id(machine):
+def get_user_id(machine) -> str:
     print(f"Retrieving user id for {machine}...")
     ref = db.reference(f"/machines/{machine}/{USER_ID}")
     user_id = ref.get()

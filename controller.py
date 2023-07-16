@@ -10,9 +10,8 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def status(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    # Machine: Status, Last User, Time Left - Statuses: Available, In Use (prompt there is a cycle in progress, are you sure you want to override?), Done (can override, done since)
     message = svc.get_status()
-    await context.bot.send_message(chat_id=update.effective_chat.id, text=message)
+    await context.bot.send_message(chat_id=update.effective_chat.id, text=message, parse_mode="HTML")
 
 
 async def use(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -58,6 +57,9 @@ async def alarm(context: ContextTypes.DEFAULT_TYPE):
 async def ping(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Get all done machines and show options
     machines = svc.get_machines_with_options([Status.DONE])
+    if not machines:
+        await context.bot.send_message(chat_id=update.effective_chat.id, text="There are no machines that are done!")
+        return
     keyboard = [[InlineKeyboardButton(machine["label"], callback_data=utils.encode_machine(machine["value"], Encoders.PING_ENCODER))] for machine in machines]
     reply_markup = InlineKeyboardMarkup(keyboard)
     await context.bot.send_message(chat_id=update.effective_chat.id, text="Please select a machine to ping user:", reply_markup=reply_markup)
@@ -74,6 +76,9 @@ async def ping_user(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def done(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Show only machines registered to user
     machines = svc.get_machines_with_options([Status.DONE], update.effective_chat.id)
+    if not machines:
+        await context.bot.send_message(chat_id=update.effective_chat.id, text="There are no machines used by you that are done!")
+        return
     keyboard = [[InlineKeyboardButton(machine["label"], callback_data=utils.encode_machine(machine["value"], Encoders.DONE_ENCODER))] for machine in machines]
     reply_markup = InlineKeyboardMarkup(keyboard)
     await context.bot.send_message(chat_id=update.effective_chat.id, text="Please select the machine that you are done using:", reply_markup=reply_markup)
@@ -87,6 +92,9 @@ async def done_machine(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def clear(update: Update, context: ContextTypes.DEFAULT_TYPE):
     machines = svc.get_machines_with_options([Status.IN_USE, Status.DONE], update.effective_chat.id)
+    if not machines:
+        await context.bot.send_message(chat_id=update.effective_chat.id, text="You are not using any machines!")
+        return
     keyboard = [[InlineKeyboardButton(machine["label"], callback_data=utils.encode_machine(machine["value"], Encoders.CLEAR_ENCODER))] for machine in machines]
     reply_markup = InlineKeyboardMarkup(keyboard)
     await context.bot.send_message(chat_id=update.effective_chat.id, text="Please select the machine that you want to cancel:", reply_markup=reply_markup)
@@ -101,7 +109,7 @@ async def clear_machine(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
-    await query.edit_message_text(text="Process Cancelled")
+    await query.edit_message_text(text="Your laundry cycle has been cancelled!")
 
 def setup_bot():
     print("Setting up Bot...")

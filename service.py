@@ -1,4 +1,4 @@
-from typing import List
+from typing import Dict, List
 import db
 from datetime import datetime
 import math
@@ -17,18 +17,20 @@ def get_status() -> str:
         try:
             status = Status(statuses[machine][STATUS])
             if status == Status.AVAILABLE:
-                message += f"{machine_text}: \U00002705 Available\n"
+                message += f"<b>{machine_text}:</b> ✅ Available\n"
             elif status == Status.IN_USE:
                 time_left = CYCLE_TIME - math.floor((datetime.now() - time).total_seconds() / 60)
-                message += f"{machine_text}: \U0000274C In Use ({time_left} mins - @{user})\n"
+                time_left = time_left if time_left > 0 else 0
+                mins = "min" if time_left == 1 else "mins"
+                message += f"<b>{machine_text}:</b> ❌ In Use ({time_left} {mins} - @{user})\n"
             elif status == Status.DONE:
-                message += f"{machine_text}: \U000023F1 Done ({time.strftime('%H:%M')} - @{user})\n"
+                message += f"<b>{machine_text}:</b> ⏱️ Done ({time.strftime('%H:%M')} - @{user})\n"
         except ValueError:
-            message += f"{machine_text}: \U00002757 Error (Status Unknown)\n"
+            message += f"<b>{machine_text}:</b> ❗️ Error (Status Unknown)\n"
     
     return message
 
-def get_machines():
+def get_machines() -> List[Dict[str, str]]:
     options = []
     for machine in Machines.get_values():
         options.append({
@@ -37,7 +39,7 @@ def get_machines():
         })
     return options
 
-def get_machines_with_options(status: List[Status], user_id: str = None):
+def get_machines_with_options(status: List[Status], user_id: str = None) -> List[Dict[str, str]]:
     machines = db.get_status()
     options = []
     for machine in machines:
@@ -48,7 +50,7 @@ def get_machines_with_options(status: List[Status], user_id: str = None):
             })
     return options
 
-def get_user_id(machine):
+def get_user_id(machine) -> str:
     utils.assert_valid_machine(machine)
     return db.get_user_id(machine)
 
@@ -56,7 +58,7 @@ def use_machine(machine, id, username):
     utils.assert_valid_machine(machine)
     db.use_machine(machine, id, username)
 
-def is_machine_in_use(machine):
+def is_machine_in_use(machine) -> bool:
     utils.assert_valid_machine(machine)
     return db.is_machine_in_use(machine) == "IN_USE"
 
