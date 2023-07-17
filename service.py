@@ -2,6 +2,7 @@ from typing import Dict, List
 import db
 from datetime import datetime
 import math
+from pytz import timezone
 from exceptions import InvalidMachineError
 import utils
 from constants import Machines, Status, STATUS, USER_ID, USER_USERNAME, START_TIME, CYCLE_TIME
@@ -12,7 +13,7 @@ def get_status() -> str:
     for machine in statuses:
         machine_text = utils.get_display_label(machine)
         user = statuses[machine][USER_USERNAME]
-        time = datetime.fromisoformat(statuses[machine][START_TIME])
+        time = datetime.fromisoformat(statuses[machine][START_TIME]).astimezone(tz=timezone("Asia/Singapore"))
 
         try:
             status = Status(statuses[machine][STATUS])
@@ -24,6 +25,7 @@ def get_status() -> str:
                 mins = "min" if time_left == 1 else "mins"
                 message += f"<b>{machine_text}:</b> ❌ In Use ({time_left} {mins} - @{user})\n"
             elif status == Status.DONE:
+                time_ended = time + datetime.timedelta(minutes=CYCLE_TIME)
                 message += f"<b>{machine_text}:</b> ⏱️ Done ({time.strftime('%H:%M')} - @{user})\n"
         except ValueError:
             message += f"<b>{machine_text}:</b> ❗️ Error (Status Unknown)\n"
