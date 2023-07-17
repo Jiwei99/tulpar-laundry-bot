@@ -1,11 +1,11 @@
 from typing import Dict, List
 import db
-from datetime import datetime
+from datetime import datetime, timedelta
 import math
 from pytz import timezone
 from exceptions import InvalidMachineError
 import utils
-from constants import Machines, Status, STATUS, USER_ID, USER_USERNAME, START_TIME, CYCLE_TIME
+from constants import Machines, Status, STATUS, USER_ID, USER_USERNAME, START_TIME, CYCLE_TIME, SG_TZ
 
 def get_status() -> str:
     statuses = db.get_status()
@@ -13,7 +13,7 @@ def get_status() -> str:
     for machine in statuses:
         machine_text = utils.get_display_label(machine)
         user = statuses[machine][USER_USERNAME]
-        time = datetime.fromisoformat(statuses[machine][START_TIME]).astimezone(tz=timezone("Asia/Singapore"))
+        time = datetime.fromisoformat(statuses[machine][START_TIME])
 
         try:
             status = Status(statuses[machine][STATUS])
@@ -25,8 +25,8 @@ def get_status() -> str:
                 mins = "min" if time_left == 1 else "mins"
                 message += f"<b>{machine_text}:</b> ❌ In Use ({time_left} {mins} - @{user})\n"
             elif status == Status.DONE:
-                time_ended = time + datetime.timedelta(minutes=CYCLE_TIME)
-                message += f"<b>{machine_text}:</b> ⏱️ Done ({time.strftime('%H:%M')} - @{user})\n"
+                time_ended = (time + timedelta(minutes=CYCLE_TIME)).astimezone(tz=timezone(SG_TZ))
+                message += f"<b>{machine_text}:</b> ⏱️ Done ({time_ended.strftime('%H:%M')} - @{user})\n"
         except ValueError:
             message += f"<b>{machine_text}:</b> ❗️ Error (Status Unknown)\n"
     

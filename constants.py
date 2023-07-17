@@ -7,6 +7,7 @@ USER_ID = "user_id"
 START_TIME = "start_time"
 
 CYCLE_TIME = 30
+SG_TZ = "Asia/Singapore"
 
 # Encoders
 class Encoders(Enum):
