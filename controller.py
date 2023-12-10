@@ -40,7 +40,6 @@ async def confirm_use_machine(update: Update, context: ContextTypes.DEFAULT_TYPE
     query = update.callback_query
     # TODO: Handle machine error
     machine = utils.decode_machine(query.data, Encoders.CONFIRM_ENCODER)
-    print(machine)
     await query.answer()
     await use_machine_helper(update, context, query, machine)
 
