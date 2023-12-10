@@ -42,6 +42,16 @@ Provides refund procedures.
 Help function
 
 ## Running on Server
-Run `nohup python3 app.py &` to run the bot in the background.
+
+### Run Using Nohup
+1. Activate venv using `source venv/bin/activate`
+2. Run `nohup python3 app.py &` to run the bot in the background.
+
+### Run Using Tmux
+1. Run `tmux`
+2. Activate venv using `source venv/bin/activate`
+3. Run `python app.py`
+4. Detach session using `ctrl+b` then `d`
+5. To reattach session, run `tmux attach`
 
 ## Hosting on Serverless
