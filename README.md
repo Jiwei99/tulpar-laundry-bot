@@ -35,6 +35,12 @@ Indicate that you have already removed your clothes after the machine is done.
 ### `/clear`
 Clear your use of any machine in case of errors.
 
+### `/refund`
+Provides refund procedures.
+
+### `/help`
+Help function
+
 ## Running on Server
 Run `nohup python3 app.py &` to run the bot in the background.
 
