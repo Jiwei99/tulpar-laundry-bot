@@ -51,8 +51,7 @@ Help function
 1. Run `tmux`
 2. Activate venv using `source venv/bin/activate`
 3. Run `python app.py`
-4. Detach session using `ctrl+b` then `d`
-
-5. To reattach session, run `tmux attach`
+4. To detach session and run app in background, press `ctrl + b` then `d`
+5. To reattach session to read logs, run `tmux attach`
 
 ## Hosting on Serverless
