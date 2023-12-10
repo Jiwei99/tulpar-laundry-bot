@@ -40,19 +40,21 @@ async def confirm_use_machine(update: Update, context: ContextTypes.DEFAULT_TYPE
     query = update.callback_query
     # TODO: Handle machine error
     machine = utils.decode_machine(query.data, Encoders.CONFIRM_ENCODER)
+    print(machine)
     await query.answer()
     await use_machine_helper(update, context, query, machine)
 
 async def use_machine_helper(update: Update, context: ContextTypes.DEFAULT_TYPE, query: CallbackQuery, machine: str):
-    svc.use_machine(query.data, update.effective_chat.id, update.effective_user.username)
+    svc.use_machine(machine, update.effective_chat.id, update.effective_user.username)
     context.job_queue.run_once(alarm, CYCLE_TIME * 60, chat_id=update.effective_chat.id, data=machine)
     await query.edit_message_text(text=f"You are now using {utils.get_display_label(machine)}!")
 
 
 async def alarm(context: ContextTypes.DEFAULT_TYPE):
     job = context.job
-    svc.set_status(job.data, Status.DONE)
-    await context.bot.send_message(chat_id=job.chat_id, text=f'Your laundry in {utils.get_display_label(job.data)} is done!')
+    if svc.is_machine_used_by(job.data, job.chat_id) and svc.is_machine_in_use(job.data):
+        svc.set_status(job.data, Status.DONE)
+        await context.bot.send_message(chat_id=job.chat_id, text=f'Your laundry in {utils.get_display_label(job.data)} is done!')
 
 async def ping(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Get all done machines and show options
@@ -111,6 +113,12 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await query.answer()
     await query.edit_message_text(text="Your laundry cycle has been cancelled!")
 
+async def refund(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await context.bot.send_message(chat_id=update.effective_chat.id, text="To request for a refund, please fill in the form here: https://forms.gle/VrghaVuxPmicVu9b9.")
+
+async def help(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await context.bot.send_message(chat_id=update.effective_chat.id, text="To seek assistance on any Washer & Dryer related issues, please contact Fresh Laundry Pte Ltd at +65 9655 3600 or @freshlaundrysg on Telegram. Alternatively, you can also contact your nearest RA.")
+
 def setup_bot():
     print("Setting up Bot...")
     application = ApplicationBuilder().token(os.getenv("TELEGRAM_TOKEN")).build()
@@ -133,6 +141,12 @@ def setup_bot():
 
     clear_handler = CommandHandler('clear', clear)
     application.add_handler(clear_handler)
+
+    refund_handler = CommandHandler('refund', refund)
+    application.add_handler(refund_handler)
+
+    help_handler = CommandHandler('help', help)
+    application.add_handler(help_handler)
 
 
     use_machine_handler = CallbackQueryHandler(use_machine, utils.is_machine)

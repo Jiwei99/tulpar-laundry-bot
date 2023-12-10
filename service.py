@@ -26,7 +26,7 @@ def get_status() -> str:
                 message += f"<b>{machine_text}:</b> ❌ In Use ({time_left} {mins} - @{user})\n"
             elif status == Status.DONE:
                 time_ended = (time + timedelta(minutes=CYCLE_TIME)).astimezone(tz=timezone(SG_TZ))
-                message += f"<b>{machine_text}:</b> ⏱️ Done ({time_ended.strftime('%H:%M')} - @{user})\n"
+                message += f"<b>{machine_text}:</b> ⏱️ Done ({time_ended.strftime('%d/%m/%y %I:%M%p')} - @{user})\n"
         except ValueError:
             message += f"<b>{machine_text}:</b> ❗️ Error (Status Unknown)\n"
     
@@ -62,8 +62,13 @@ def use_machine(machine, id, username):
 
 def is_machine_in_use(machine) -> bool:
     utils.assert_valid_machine(machine)
-    return db.is_machine_in_use(machine) == "IN_USE"
+    return db.is_machine_in_use(machine) == Status.IN_USE.value
 
 def set_status(machine, status: Status):
     utils.assert_valid_machine(machine)
     db.set_status(machine, status)
+
+def is_machine_used_by(machine, usr) -> bool:
+    utils.assert_valid_machine(machine)
+    user = db.get_user_id(machine)
+    return user == usr
