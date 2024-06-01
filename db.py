@@ -3,7 +3,7 @@ import firebase_admin
 import os
 from firebase_admin import db
 from datetime import datetime
-from constants import Status, STATUS, USER_ID, USER_USERNAME, START_TIME
+from constants import Status, STATUS, USER_ID, USER_USERNAME, START_TIME, CYCLE_TIME
 
 def setup_db():
     print("Setting up Database...")
@@ -42,14 +42,15 @@ def is_machine_in_use(machine) -> str:
     print(f"Status for {machine} retrieved!")
     return status
 
-def use_machine(machine, user_id, user_username):
+def use_machine(machine, user_id, user_username, cycle_time):
     print(f"Using {machine}...")
     ref = db.reference(f"/machines/{machine}")
     ref.update({
         STATUS: Status.IN_USE.value,
         USER_ID: user_id,
         USER_USERNAME: user_username,
-        START_TIME: datetime.now().isoformat()
+        START_TIME: datetime.now().isoformat(),
+        CYCLE_TIME: cycle_time,
     })
     print(f"{machine} is now in use!")
 

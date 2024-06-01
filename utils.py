@@ -22,3 +22,6 @@ def encode_machine(machine: str, encoder: Encoders) -> str:
 
 def decode_machine(encoded_machine: str, encoder: Encoders) -> str:
     return encoded_machine.strip(encoder.value)
+
+def is_washer(machine: str) -> bool:
+    return machine.startswith("washer")

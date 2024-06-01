@@ -5,8 +5,10 @@ STATUS = "status"
 USER_USERNAME = "user_username"
 USER_ID = "user_id"
 START_TIME = "start_time"
+CYCLE_TIME = "cycle_time"
 
-CYCLE_TIME = 30
+DEFAULT_CYCLE_TIME = 30
+
 SG_TZ = "Asia/Singapore"
 
 # Encoders
@@ -15,6 +17,7 @@ class Encoders(Enum):
     PING_ENCODER = "~"
     DONE_ENCODER = "-"
     CLEAR_ENCODER = "="
+    CYCLE_ENCODER = "@"
 
 # Machines
 class Machines(Enum):
@@ -33,3 +36,8 @@ class Status(Enum):
     AVAILABLE = "AVAILABLE"
     IN_USE = "IN_USE"
     DONE = "DONE"
+
+class Load(Enum):
+    LIGHT = 30
+    MEDIUM = 32
+    HEAVY = 34

@@ -3,7 +3,7 @@ from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, Conve
 import os
 import service as svc
 import utils
-from constants import Encoders, CYCLE_TIME, Status
+from constants import Encoders, Load, Status, DEFAULT_CYCLE_TIME
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(chat_id=update.effective_chat.id, text="Start")
@@ -17,6 +17,7 @@ async def status(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def use(update: Update, context: ContextTypes.DEFAULT_TYPE):
     machines = svc.get_machines()
     keyboard = [[InlineKeyboardButton(machine["label"], callback_data=machine["value"])] for machine in machines]
+    keyboard.append([InlineKeyboardButton("Cancel", callback_data="cancel")])
     reply_markup = InlineKeyboardMarkup(keyboard)
     await context.bot.send_message(chat_id=update.effective_chat.id, text="Please select a machine:", reply_markup=reply_markup)
 
@@ -34,6 +35,15 @@ async def use_machine(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_markup = InlineKeyboardMarkup(keyboard)
         await query.edit_message_text(text=f"{machine_label} is currently in use, are you sure you want to override?", reply_markup=reply_markup)
     else:
+        await get_cycle_time(update, context, query, machine)
+
+async def get_cycle_time(update: Update, context: ContextTypes.DEFAULT_TYPE, query: CallbackQuery, machine: str):
+    if utils.is_washer(machine):
+        keyboard = [[InlineKeyboardButton(load.name.capitalize(), callback_data=utils.encode_machine(f"{machine}__{load.name}", Encoders.CYCLE_ENCODER))] for load in Load]
+        keyboard.append([InlineKeyboardButton("Cancel", callback_data="cancel")])
+        # Ask for duration
+        await query.edit_message_text(text=f"Please select the wash cycle:", reply_markup=InlineKeyboardMarkup(keyboard))
+    else:
         await use_machine_helper(update, context, query, machine)
 
 async def confirm_use_machine(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -41,13 +51,20 @@ async def confirm_use_machine(update: Update, context: ContextTypes.DEFAULT_TYPE
     # TODO: Handle machine error
     machine = utils.decode_machine(query.data, Encoders.CONFIRM_ENCODER)
     await query.answer()
-    await use_machine_helper(update, context, query, machine)
+    await get_cycle_time(update, context, query, machine)
 
-async def use_machine_helper(update: Update, context: ContextTypes.DEFAULT_TYPE, query: CallbackQuery, machine: str):
-    svc.use_machine(machine, update.effective_chat.id, update.effective_user.username)
-    context.job_queue.run_once(alarm, CYCLE_TIME * 60, chat_id=update.effective_chat.id, data=machine)
+async def use_machine_helper(update: Update, context: ContextTypes.DEFAULT_TYPE, query: CallbackQuery, machine: str, cycle_time: int = DEFAULT_CYCLE_TIME):
+    svc.use_machine(machine, update.effective_chat.id, update.effective_user.username, cycle_time)
+    context.job_queue.run_once(alarm, cycle_time * 60, chat_id=update.effective_chat.id, data=machine)
     await query.edit_message_text(text=f"You are now using {utils.get_display_label(machine)}!")
 
+async def set_washer_duration(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    res = utils.decode_machine(query.data, Encoders.CYCLE_ENCODER)
+    machine, load = res.split("__")
+    cycle = Load[load].value
+    await query.answer()
+    await use_machine_helper(update, context, query, machine, cycle)
 
 async def alarm(context: ContextTypes.DEFAULT_TYPE):
     job = context.job
@@ -147,23 +164,25 @@ def setup_bot():
     help_handler = CommandHandler('help', help)
     application.add_handler(help_handler)
 
-
     use_machine_handler = CallbackQueryHandler(use_machine, utils.is_machine)
     application.add_handler(use_machine_handler)
 
-    confirm_use_machine_handler = CallbackQueryHandler(confirm_use_machine, pattern=f"^\{Encoders.CONFIRM_ENCODER.value}\w+")
+    confirm_use_machine_handler = CallbackQueryHandler(confirm_use_machine, pattern=f"^\\{Encoders.CONFIRM_ENCODER.value}\\w+")
     application.add_handler(confirm_use_machine_handler)
+
+    washer_duration_handler = CallbackQueryHandler(set_washer_duration, pattern=f"^{Encoders.CYCLE_ENCODER.value}\\w+")
+    application.add_handler(washer_duration_handler)
 
     cancel_handler = CallbackQueryHandler(cancel, pattern='cancel')
     application.add_handler(cancel_handler)
 
-    ping_user_handler = CallbackQueryHandler(ping_user, pattern=f"^{Encoders.PING_ENCODER.value}\w+")
+    ping_user_handler = CallbackQueryHandler(ping_user, pattern=f"^{Encoders.PING_ENCODER.value}\\w+")
     application.add_handler(ping_user_handler)
 
-    done_machine_handler = CallbackQueryHandler(done_machine, pattern=f"^{Encoders.DONE_ENCODER.value}\w+")
+    done_machine_handler = CallbackQueryHandler(done_machine, pattern=f"^{Encoders.DONE_ENCODER.value}\\w+")
     application.add_handler(done_machine_handler)
 
-    clear_machine_handler = CallbackQueryHandler(clear_machine, pattern=f"^{Encoders.CLEAR_ENCODER.value}\w+")
+    clear_machine_handler = CallbackQueryHandler(clear_machine, pattern=f"^{Encoders.CLEAR_ENCODER.value}\\w+")
     application.add_handler(clear_machine_handler)
 
     return application

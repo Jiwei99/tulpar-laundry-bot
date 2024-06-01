@@ -3,6 +3,9 @@
 The Tulpar Laundry Bot is a Telegram Bot used to track realtime Laundry machine usage in CAPT's Tulpar House.
 
 ## Dependencies
+The following python version is used:
+* Python 3.7+ (Recommended Python 3.12)
+
 The following Python packages are used:
 * `python-telegram-bot[job-queue]`: Handling bot requests and integration with Telegram API
 * `firebase-admin`: Integration of the bot with Firebase Realtime Database
