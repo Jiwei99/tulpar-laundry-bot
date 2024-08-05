@@ -117,17 +117,17 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     reply_markup = InlineKeyboardMarkup(keyboard)
     await context.bot.send_message(chat_id=update.effective_chat.id, text="Please select the machine that you want to cancel:", reply_markup=reply_markup)
 
-async def clear_machine(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def cancel_machine(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     machine = utils.decode_machine(query.data, Encoders.CLEAR_ENCODER)
     svc.set_status(machine, Status.AVAILABLE)
     await query.answer()
-    await query.edit_message_text(text=f"Your booking of {utils.get_display_label(machine)} has been cleared!")
+    await query.edit_message_text(text=f"Your usage of {utils.get_display_label(machine)} has been cancelled!")
 
 async def cancel_usage(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
-    await query.edit_message_text(text="Your laundry cycle has been cancelled!")
+    await query.edit_message_text(text="Your selection has been cancelled!")
 
 async def refund(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(chat_id=update.effective_chat.id, text="To request for a refund, please fill in the form here: https://forms.gle/VrghaVuxPmicVu9b9.")
@@ -182,8 +182,8 @@ def setup_bot():
     done_machine_handler = CallbackQueryHandler(done_machine, pattern=f"^{Encoders.DONE_ENCODER.value}\\w+")
     application.add_handler(done_machine_handler)
 
-    clear_machine_handler = CallbackQueryHandler(clear_machine, pattern=f"^{Encoders.CLEAR_ENCODER.value}\\w+")
-    application.add_handler(clear_machine_handler)
+    cancel_machine_handler = CallbackQueryHandler(cancel_machine, pattern=f"^{Encoders.CLEAR_ENCODER.value}\\w+")
+    application.add_handler(cancel_machine_handler)
 
     return application
     
