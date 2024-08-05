@@ -108,7 +108,7 @@ async def done_machine(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await query.answer()
     await query.edit_message_text(text=f"Your laundry in {utils.get_display_label(machine)} has been cleared!")
 
-async def clear(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     machines = svc.get_machines_with_options([Status.IN_USE, Status.DONE], update.effective_chat.id)
     if not machines:
         await context.bot.send_message(chat_id=update.effective_chat.id, text="You are not using any machines!")
@@ -155,8 +155,8 @@ def setup_bot():
     done_handler = CommandHandler('done', done)
     application.add_handler(done_handler)
 
-    clear_handler = CommandHandler('clear', clear)
-    application.add_handler(clear_handler)
+    cancel_handler = CommandHandler('cancel', cancel)
+    application.add_handler(cancel_handler)
 
     refund_handler = CommandHandler('refund', refund)
     application.add_handler(refund_handler)
