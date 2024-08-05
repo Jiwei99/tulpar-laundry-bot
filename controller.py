@@ -124,7 +124,7 @@ async def clear_machine(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await query.answer()
     await query.edit_message_text(text=f"Your booking of {utils.get_display_label(machine)} has been cleared!")
 
-async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def cancel_usage(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
     await query.edit_message_text(text="Your laundry cycle has been cancelled!")
@@ -173,8 +173,8 @@ def setup_bot():
     washer_duration_handler = CallbackQueryHandler(set_washer_duration, pattern=f"^{Encoders.CYCLE_ENCODER.value}\\w+")
     application.add_handler(washer_duration_handler)
 
-    cancel_handler = CallbackQueryHandler(cancel, pattern='cancel')
-    application.add_handler(cancel_handler)
+    cancel_usage_handler = CallbackQueryHandler(cancel_usage, pattern='cancel')
+    application.add_handler(cancel_usage_handler)
 
     ping_user_handler = CallbackQueryHandler(ping_user, pattern=f"^{Encoders.PING_ENCODER.value}\\w+")
     application.add_handler(ping_user_handler)
