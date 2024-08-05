@@ -28,14 +28,14 @@ def setup_db():
 
     print("Connected to Database!")
 
-def get_status() -> Dict:
+def get_statuses() -> Dict:
     print("Retrieving statuses...")
     ref = db.reference("/machines")
     status = ref.get()
     print("Statuses retrieved!")
     return status
 
-def is_machine_in_use(machine) -> str:
+def get_machine_status(machine) -> str:
     print(f"Checking {machine} status...")
     ref = db.reference(f"/machines/{machine}/{STATUS}")
     status = ref.get()
