@@ -29,6 +29,14 @@ class Machines(Enum):
     @classmethod
     def get_values(cls):
         return list(map(lambda machine: machine.value, cls))
+    
+    @classmethod
+    def get_washers(cls):
+        return [cls.WASHER_1.value, cls.WASHER_2.value]
+    
+    @classmethod
+    def get_dryers(cls):
+        return [cls.DRYER_1.value, cls.DRYER_2.value]
 
 
 # Statuses

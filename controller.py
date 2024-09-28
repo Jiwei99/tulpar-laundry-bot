@@ -118,7 +118,7 @@ async def done_machine(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await query.answer()
     await query.edit_message_text(text=f"Your laundry in {utils.get_display_label(machine)} has been cleared!")
 
-async def clear(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     machines = svc.get_machines_with_options([Status.IN_USE, Status.DONE], update.effective_chat.id)
     if not machines:
         await context.bot.send_message(chat_id=update.effective_chat.id, text="You are not using any machines!")
@@ -127,17 +127,17 @@ async def clear(update: Update, context: ContextTypes.DEFAULT_TYPE):
     reply_markup = InlineKeyboardMarkup(keyboard)
     await context.bot.send_message(chat_id=update.effective_chat.id, text="Please select the machine that you want to cancel:", reply_markup=reply_markup)
 
-async def clear_machine(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def cancel_machine(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     machine = utils.decode_machine(query.data, Encoders.CLEAR_ENCODER)
     svc.set_status(machine, Status.AVAILABLE)
     await query.answer()
-    await query.edit_message_text(text=f"Your booking of {utils.get_display_label(machine)} has been cleared!")
+    await query.edit_message_text(text=f"Your usage of {utils.get_display_label(machine)} has been cancelled!")
 
-async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def cancel_usage(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
-    await query.edit_message_text(text="Your laundry cycle has been cancelled!")
+    await query.edit_message_text(text="Your selection has been cancelled!")
 
 async def refund(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(chat_id=update.effective_chat.id, text="To request for a refund, please fill in the form here: https://forms.gle/VrghaVuxPmicVu9b9.")
@@ -165,8 +165,8 @@ def setup_bot():
     done_handler = CommandHandler('done', done)
     application.add_handler(done_handler)
 
-    clear_handler = CommandHandler('clear', clear)
-    application.add_handler(clear_handler)
+    cancel_handler = CommandHandler('cancel', cancel)
+    application.add_handler(cancel_handler)
 
     refund_handler = CommandHandler('refund', refund)
     application.add_handler(refund_handler)
@@ -183,8 +183,8 @@ def setup_bot():
     duration_handler = CallbackQueryHandler(set_duration, pattern=f"^{Encoders.CYCLE_ENCODER.value}\\w+")
     application.add_handler(duration_handler)
 
-    cancel_handler = CallbackQueryHandler(cancel, pattern='cancel')
-    application.add_handler(cancel_handler)
+    cancel_usage_handler = CallbackQueryHandler(cancel_usage, pattern='cancel')
+    application.add_handler(cancel_usage_handler)
 
     ping_user_handler = CallbackQueryHandler(ping_user, pattern=f"^{Encoders.PING_ENCODER.value}\\w+")
     application.add_handler(ping_user_handler)
@@ -192,8 +192,8 @@ def setup_bot():
     done_machine_handler = CallbackQueryHandler(done_machine, pattern=f"^{Encoders.DONE_ENCODER.value}\\w+")
     application.add_handler(done_machine_handler)
 
-    clear_machine_handler = CallbackQueryHandler(clear_machine, pattern=f"^{Encoders.CLEAR_ENCODER.value}\\w+")
-    application.add_handler(clear_machine_handler)
+    cancel_machine_handler = CallbackQueryHandler(cancel_machine, pattern=f"^{Encoders.CLEAR_ENCODER.value}\\w+")
+    application.add_handler(cancel_machine_handler)
 
     return application
     
