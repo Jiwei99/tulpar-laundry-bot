@@ -37,7 +37,12 @@ class Status(Enum):
     IN_USE = "IN_USE"
     DONE = "DONE"
 
-class Load(Enum):
+class WasherLoad(Enum):
     LIGHT = 30
     MEDIUM = 32
     HEAVY = 34
+
+class DryerTime(Enum):
+    SHORT = 30
+    MEDIUM = 45
+    LONG = 60

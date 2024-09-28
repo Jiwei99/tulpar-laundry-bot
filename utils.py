@@ -25,3 +25,6 @@ def decode_machine(encoded_machine: str, encoder: Encoders) -> str:
 
 def is_washer(machine: str) -> bool:
     return machine.startswith("washer")
+
+def is_dryer(machine: str) -> bool:
+    return machine.startswith("dryer")

@@ -3,7 +3,7 @@ from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, Conve
 import os
 import service as svc
 import utils
-from constants import Encoders, Load, Status, DEFAULT_CYCLE_TIME
+from constants import Encoders, WasherLoad, DryerTime, Status, DEFAULT_CYCLE_TIME
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(chat_id=update.effective_chat.id, text="Start")
@@ -39,12 +39,17 @@ async def use_machine(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def get_cycle_time(update: Update, context: ContextTypes.DEFAULT_TYPE, query: CallbackQuery, machine: str):
     if utils.is_washer(machine):
-        keyboard = [[InlineKeyboardButton(load.name.capitalize(), callback_data=utils.encode_machine(f"{machine}__{load.name}", Encoders.CYCLE_ENCODER))] for load in Load]
+        keyboard = [[InlineKeyboardButton(load.name.capitalize(), callback_data=utils.encode_machine(f"{machine}__{load.name}", Encoders.CYCLE_ENCODER))] for load in WasherLoad]
         keyboard.append([InlineKeyboardButton("Cancel", callback_data="cancel")])
         # Ask for duration
         await query.edit_message_text(text=f"Please select the wash cycle:", reply_markup=InlineKeyboardMarkup(keyboard))
+    elif utils.is_dryer(machine):
+        keyboard = [[InlineKeyboardButton("{} Minutes".format(time.value), callback_data=utils.encode_machine(f"{machine}__{time.name}", Encoders.CYCLE_ENCODER))] for time in DryerTime]
+        keyboard.append([InlineKeyboardButton("Cancel", callback_data="cancel")])
+        # Ask for duration
+        await query.edit_message_text(text=f"Please select the dryer time:", reply_markup=InlineKeyboardMarkup(keyboard))
     else:
-        await use_machine_helper(update, context, query, machine)
+        await query.edit_message_text(text=f"Error!")
 
 async def confirm_use_machine(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
@@ -58,11 +63,16 @@ async def use_machine_helper(update: Update, context: ContextTypes.DEFAULT_TYPE,
     context.job_queue.run_once(alarm, cycle_time * 60, chat_id=update.effective_chat.id, data=machine)
     await query.edit_message_text(text=f"You are now using {utils.get_display_label(machine)}!")
 
-async def set_washer_duration(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def set_duration(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     res = utils.decode_machine(query.data, Encoders.CYCLE_ENCODER)
     machine, load = res.split("__")
-    cycle = Load[load].value
+    if utils.is_washer(machine):
+        cycle = WasherLoad[load].value
+    elif utils.is_dryer(machine):
+        cycle = DryerTime[load].value
+    else:
+        cycle = DEFAULT_CYCLE_TIME
     await query.answer()
     await use_machine_helper(update, context, query, machine, cycle)
 
@@ -170,8 +180,8 @@ def setup_bot():
     confirm_use_machine_handler = CallbackQueryHandler(confirm_use_machine, pattern=f"^\\{Encoders.CONFIRM_ENCODER.value}\\w+")
     application.add_handler(confirm_use_machine_handler)
 
-    washer_duration_handler = CallbackQueryHandler(set_washer_duration, pattern=f"^{Encoders.CYCLE_ENCODER.value}\\w+")
-    application.add_handler(washer_duration_handler)
+    duration_handler = CallbackQueryHandler(set_duration, pattern=f"^{Encoders.CYCLE_ENCODER.value}\\w+")
+    application.add_handler(duration_handler)
 
     cancel_handler = CallbackQueryHandler(cancel, pattern='cancel')
     application.add_handler(cancel_handler)
